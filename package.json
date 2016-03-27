@@ -18,6 +18,7 @@
     "mocha": "2.4.5",
     "mocha-traceur": "2.1.0"
   },
+  "repository": "git://github.com/jkyberneees/distributed-eventemitter",
   "files": [
     "LICENSE",
     "Readme.md",
