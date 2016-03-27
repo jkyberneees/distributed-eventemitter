@@ -16,8 +16,10 @@
   "devDependencies": {
     "chai": "3.5.0",
     "mocha": "2.4.5",
-    "mocha-traceur": "2.1.0"
+    "mocha-traceur": "2.1.0",
+    "traceur":"0.0.105"
   },
+  "main": "main.js",
   "repository": "git://github.com/jkyberneees/distributed-eventemitter",
   "files": [
     "LICENSE",
