@@ -44,7 +44,7 @@ events.emitToOne('email.send' {
 # Requirements
 - Running [STOMP compliant broker](http://activemq.apache.org/installation.html) instance. Default client destinations are:
   1. _/topic/distributed-eventemitter_: Used for events broadcast (emit)
-  - _/queue/distributed-eventemitter_: Used for one-to-one events (request)
+  - _/queue/distributed-eventemitter_: Used for one-to-one events (emitToOne)
 
     > If the broker require clients to be authenticated, you can use:
 
