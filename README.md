@@ -4,13 +4,13 @@ Process A:
 ```js
 var EventEmitter = require('distributed-eventemitter');
 var events = new EventEmitter(); // host: localhost, port: 61613
-events.start();
+events.connect().then(()=> {
+  events.on('email.send', (message, resolve, reject) => {
+    //... send email
+    // ...
 
-events.on('email.send', (message, resolve, reject) => {
-  //... send email
-  // ...
-
-  resolve('sent');
+    resolve('sent');
+  });
 });
 ```
 
@@ -102,7 +102,6 @@ var events = new EventEmitter(config);
   The library solve the need of a multi process and multi server oriented messaging API in Node.js.<br>  Using the known [EventEmitter](https://nodejs.org/api/events.html/) API, listeners registration and events emitting is super simple.<br>  A new 'emitToOne' method allows one-to-one events notification, intended for request/response flows on clustered services. The classic 'emit' method broadcast custom events to local and distributed listeners.
 
 # API
-
 **getId**: Get the STOMP client 'client-id' value.
 
 ```js
