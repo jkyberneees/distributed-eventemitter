@@ -20,7 +20,7 @@ const UUID = require('uuid');
 const EventEmitter = require('eventemitter2').EventEmitter2;
 
 class DistributedEventEmitter extends EventEmitter {
-  constructor(config = {}) {
+  constructor(config) {
     super({
       wildcard: true,
       newListener: true
@@ -28,6 +28,7 @@ class DistributedEventEmitter extends EventEmitter {
     var self = this;
     const subscriptions = {};
 
+    config = config || {};
     this.config = config;
     config.host = config.host || 'localhost';
     config.port = config.port || 61613;
@@ -146,7 +147,8 @@ class DistributedEventEmitter extends EventEmitter {
     });
   }
 
-  emitToOne(event, message, timeout = 0) {
+  emitToOne(event, message, timeout) {
+    timeout = timeout || 0;
     var self = this;
     return new Promise((resolve, reject) => {
       var msgId = UUID.v4();

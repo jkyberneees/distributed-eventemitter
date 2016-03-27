@@ -30,7 +30,7 @@ Process B:
 
 ```js
 //...
-events.emitToOne('email.send' {
+events.emitToOne('email.send', {
   to: 'kyberneees@gmail.com',
   subject: 'Hello Node.js',
   body: 'Introducing easy distributed messaging for Node.js...'
