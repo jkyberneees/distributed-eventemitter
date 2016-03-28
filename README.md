@@ -23,7 +23,7 @@
 3. Send email from client process (B.js):
 
   ```js
-  var EventEmitter = require('../main.js');
+  var EventEmitter = require('distributed-eventemitter');
   var events = new EventEmitter(); // host: localhost, port: 61613
   events.connect().then(() => {
     events.emitToOne('email.send', {
