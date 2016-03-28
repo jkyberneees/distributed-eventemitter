@@ -1,45 +1,42 @@
 # Quick Start
-Process A:
+1. Mailer service (A.js):
 
-```js
-var EventEmitter = require('distributed-eventemitter');
-var events = new EventEmitter(); // host: localhost, port: 61613
-events.connect().then(()=> {
-  events.on('email.send', (message, resolve, reject) => {
-    //... send email
-    // ...
+  ```js
+  var EventEmitter = require('distributed-eventemitter');
+  var events = new EventEmitter(); // host: localhost, port: 61613
+  events.connect().then(()=> {
+    events.on('email.send', (message, resolve, reject) => {
+      //... send email
+      // ...
 
-    resolve('sent');
+      resolve('sent');
+    });
   });
-});
-```
+  ```
 
-Process A (copy):
+2. Run mailer service as a cluster with [PM2](https://www.npmjs.com/package/pm2):
 
-```js
-//...
-events.on('email.send', (message, resolve, reject) => {
-  //... send email
-  // ...
+  ```bash
+  pm2 start A.js -i 4 --node-args="--harmony"
+  ```
 
-  resolve('sent');
-});
-```
+3. Send email from client process (B.js):
 
-Process B:
-
-```js
-//...
-events.emitToOne('email.send', {
-  to: 'kyberneees@gmail.com',
-  subject: 'Hello Node.js',
-  body: 'Introducing easy distributed messaging for Node.js...'
-}).then((response) => {
-  if ('sent' === response){
-    // ...
-  }
-})
-```
+  ```js
+  var EventEmitter = require('../main.js');
+  var events = new EventEmitter(); // host: localhost, port: 61613
+  events.connect().then(() => {
+    events.emitToOne('email.send', {
+      to: 'kyberneees@gmail.com',
+      subject: 'Hello Node.js',
+      body: 'Introducing easy distributed messaging for Node.js...'
+    }).then((response) => {
+      if ('sent' === response) {
+        console.log('email was sent!');
+      }
+    });
+  });
+  ```
 
 # Requirements
 - Running [STOMP compliant broker](http://activemq.apache.org/installation.html) instance. Default client destinations are:
@@ -65,8 +62,9 @@ $ npm install distributed-eventemitter
 
 # Features
 - Extends [eventemitter2](https://www.npmjs.com/package/eventemitter2/).
-- Promise based API.
-- One-To-One based communication intended for service clusters (emitToOne). One-To-Many for normal events broadcast (the classic 'emit')
+- ECMA6 Promise based API.
+- Request/Response communication intended for service clusters (emitToOne)  
+- Events broadcast to local and distributed listeners (emit)
 - Works with any STOMP compliant message broker (ie. ActiveMQ, RabbitMQ,  ...).
 - Uses [stompjs](https://www.npmjs.com/package/stompjs/) as STOMP client.
 
@@ -145,6 +143,10 @@ events.emitToOne('my.event', {data: 'hello'}, 100).catch((error) => {
   console.log('invalid args' === error);
 });
 ```
+# Roadmap
+
+1. STOMP client reconnection support.
+2. Express integration.
 
 # Tests
 
