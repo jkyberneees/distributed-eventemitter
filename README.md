@@ -1,5 +1,5 @@
 # Quick Start
-1. Mailer service (A.js):
+1. Mailer server (A.js):
 
   ```js
   var EventEmitter = require('distributed-eventemitter');
@@ -15,13 +15,13 @@
   });
   ```
 
-2. Run mailer service as a cluster with [PM2](https://www.npmjs.com/package/pm2):
+2. Run mailer server as a cluster with [PM2](https://www.npmjs.com/package/pm2):
 
   ```bash
   pm2 start A.js -i 4 --node-args="--harmony"
   ```
 
-3. Send email from client process (B.js):
+3. Mailer client  (B.js):
 
   ```js
   var EventEmitter = require('distributed-eventemitter');
@@ -38,7 +38,8 @@
     }).catch(console.log.bind());
   });
   ```
-4. Run client:
+4. Run mailer client:
+
   ```bash
   node --harmony B.js
   ```
