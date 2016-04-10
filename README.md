@@ -2,7 +2,7 @@
 1. Mailer service (A.js):
 
   ```js
-  var EventEmitter = require('../main.js');
+  var EventEmitter = require('distributed-eventemitter');
   var events = new EventEmitter(); // host: localhost, port: 61613
   events.connect().then(() => {
     events.on('email.send', (message, resolve, reject) => {
