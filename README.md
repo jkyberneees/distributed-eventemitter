@@ -2,10 +2,11 @@
 1. Mailer service (A.js):
 
   ```js
-  var EventEmitter = require('distributed-eventemitter');
+  var EventEmitter = require('../main.js');
   var events = new EventEmitter(); // host: localhost, port: 61613
-  events.connect().then(()=> {
+  events.connect().then(() => {
     events.on('email.send', (message, resolve, reject) => {
+      console.log('sending email...');
       //... send email
       // ...
 
@@ -30,29 +31,36 @@
       to: 'kyberneees@gmail.com',
       subject: 'Hello Node.js',
       body: 'Introducing easy distributed messaging for Node.js...'
-    }).then((response) => {
+    }, 3000).then((response) => {
       if ('sent' === response) {
         console.log('email was sent!');
       }
-    });
+    }).catch(console.log.bind());
   });
+  ```
+4. Run client:
+  ```bash
+  node --harmony B.js
   ```
 
 # Requirements
-- Running [STOMP compliant broker](http://activemq.apache.org/installation.html) instance. Default client destinations are:
+- Running [STOMP compliant server](http://activemq.apache.org/installation.html) instance. Default client destinations are:
   1. _/topic/distributed-eventemitter_: Used for events broadcast (emit)
   - _/queue/distributed-eventemitter_: Used for one-to-one events (emitToOne)
 
-    > If the broker require clients to be authenticated, you can use:
+    > If the server require clients to be authenticated, you can use:
 
   ```js
-  config.headers = {
-    login: 'user',
-    passcode: 'password'
-  };
+  {
+    'host': 'localhost',
+    'connectHeaders': {
+      'heart-beat': '5000,5000',
+      'host': '',
+      'login': 'username',
+      'passcode': 'password'
+    }
+  }
   ```
-
-  > A temporary queue per client is used as a reply-to channel.
 
 # Installation
 
@@ -61,52 +69,47 @@ $ npm install distributed-eventemitter
 ```
 
 # Features
-- Extends [eventemitter2](https://www.npmjs.com/package/eventemitter2/).
+- Extends [eventemitter2](https://www.npmjs.com/package/eventemitter2/). ([wildcards](https://www.npmjs.com/package/eventemitter2/#api) are enabled). 
 - ECMA6 Promise based API.
-- Request/Response communication intended for service clusters (emitToOne)  
+- Request/Response communication intended for service clusters (emitToOne). Uncaught exceptions automatically invoke 'reject(error.message)'  
 - Events broadcast to local and distributed listeners (emit)
-- Works with any STOMP compliant message broker (ie. ActiveMQ, RabbitMQ,  ...).
-- Uses [stompjs](https://www.npmjs.com/package/stompjs/) as STOMP client.
+- Works with any STOMP compliant server (ie. ActiveMQ, RabbitMQ,  ...).
+- Uses [stompit](https://www.npmjs.com/package/stompit/) as STOMP client. (automated server reconnection is supported)
 
 # Config params
-Using TCP connections:
-
 ```js
 var config = {};
-config.host = 'localhost'; // STOMP broker IP address
-config.port = 61613; // STOMP broker port
-config.destination = 'distributed-eventemitter'; // STOMP destination
-config.protocol = 'tcp'; // connection type
-config.headers = {}; // stompjs client connection headers
+config.destination = 'distributed-eventemitter'; // server topic and queue destinations
 config.excludedEvents = []; // events that are not distributed
+config.servers = [{
+  'host': 'localhost',
+  'port': 61613,
+  'connectHeaders': {
+    'heart-beat': '5000,5000',
+    'host': '',
+    'login': '',
+    'passcode': ''
+  }
+}];
+config.reconnectOpts = {
+  maxReconnects: 10;
+}
 
 var events = new EventEmitter(config);
 ```
-
-Using WebSocket connections:
-
-```js
-var config = {};
-config.url = 'ws://localhost:61614'; // STOMP broker URL
-config.destination = 'distributed-eventemitter'; // STOMP destination
-config.protocol = 'ws'; // connection type
-config.headers = {}; // stompjs client connection headers
-config.excludedEvents = []; // events that are not distributed
-
-var events = new EventEmitter(config);
-```
+  For more details about 'servers' and 'reconnectOpts' params please check: http://gdaws.github.io/node-stomp/api/connect-failover/ 
 
 # Why?
   The library solve the need of a multi process and multi server oriented messaging API in Node.js.<br>  Using the known [EventEmitter](https://nodejs.org/api/events.html/) API, listeners registration and events emitting is super simple.<br>  A new 'emitToOne' method allows one-to-one events notification, intended for request/response flows on clustered services. The classic 'emit' method broadcast custom events to local and distributed listeners.
 
 # API
-**getId**: Get the STOMP client 'client-id' value.
+**getId**: Get the emitter instance unique id.
 
 ```js
-events.getId(); // commonly an UUID v4 value
+events.getId(); // UUID v4 value
 ```
 
-**connect**: Connect the emitter to the broker instance.
+**connect**: Connect the emitter to the server. Emit the 'connected' event.
 
 ```js
 events.connect().then(()=> {
@@ -114,7 +117,7 @@ events.connect().then(()=> {
 });
 ```
 
-**disconnect**: Disconnect the emitter from the broker instance.
+**disconnect**: Disconnect the emitter from the server. Emit the 'disconnected' event.
 
 ```js
 events.disconnect().then(()=> {
@@ -145,8 +148,7 @@ events.emitToOne('my.event', {data: 'hello'}, 100).catch((error) => {
 ```
 # Roadmap
 
-1. STOMP client reconnection support.
-2. Express integration.
+1. Express integration.
 
 # Tests
 
@@ -154,3 +156,8 @@ events.emitToOne('my.event', {data: 'hello'}, 100).catch((error) => {
 $ npm install
 $ npm test
 ```
+# History changes
+
+## 1.1.x
+  - From version 1.1.0+ we use Stompit as STOMP client because Stompjs does not support server reconnections and is also unmaintained.
+  - No API changes from 1.0 version except the configuration params, since now we consider a list of STOMP servers to connect/reconnect.

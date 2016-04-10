@@ -18,10 +18,11 @@
 var EventEmitter = require('../main.js');
 var events = new EventEmitter(); // host: localhost, port: 61613
 events.connect().then(() => {
-  events.on('email.send', (message, resolve, reject) => {
-    //... send email
-    // ...
+    events.on('email.send', (message, resolve, reject) => {
+        console.log('sending email...');
+        //... send email
+        // ...
 
-    resolve('sent');
-  });
+        resolve('sent');
+    });
 });

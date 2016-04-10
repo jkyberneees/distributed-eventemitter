@@ -18,13 +18,13 @@
 var EventEmitter = require('../main.js');
 var events = new EventEmitter(); // host: localhost, port: 61613
 events.connect().then(() => {
-  events.emitToOne('email.send', {
-    to: 'kyberneees@gmail.com',
-    subject: 'Hello Node.js',
-    body: 'Introducing easy distributed messaging for Node.js...'
-  }).then((response) => {
-    if ('sent' === response) {
-      console.log('email was sent!');
-    }
-  });
+    events.emitToOne('email.send', {
+        to: 'kyberneees@gmail.com',
+        subject: 'Hello Node.js',
+        body: 'Introducing easy distributed messaging for Node.js...'
+    }, 3000).then((response) => {
+        if ('sent' === response) {
+            console.log('email was sent!');
+        }
+    }).catch(console.log.bind());
 });

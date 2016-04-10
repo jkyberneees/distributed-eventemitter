@@ -15,194 +15,296 @@
  */
 /*jshint esversion: 6*/
 
-const Stomp = require('stompjs');
+const Stomp = require('stompit');
 const UUID = require('uuid');
 const EventEmitter = require('eventemitter2').EventEmitter2;
 
 class DistributedEventEmitter extends EventEmitter {
-  constructor(config) {
-    super({
-      wildcard: true,
-      newListener: true
-    });
-    var self = this;
-    const subscriptions = {};
-
-    config = config || {};
-    this.config = config;
-    config.host = config.host || 'localhost';
-    config.port = config.port || 61613;
-    config.destination = config.destination || 'distributed-eventemitter';
-    config.protocol = config.protocol || 'tcp';
-    config.headers = config.headers || {};
-    config.headers['client-id'] = config.headers['client-id'] || UUID.v4();
-    config.excludedEvents = config.excludedEvents || [];
-    config.excludedEvents.push(...['newListener', 'removeListener', 'opened', 'closed', 'error']);
-
-    const callback1 = (event, isQueue, raw) => {
-      if (!isQueue) {
-        var args = [event];
-        args.push(...JSON.parse(raw.body));
-        args.push(raw);
-        self.emit.apply(self, args);
-      } else {
-        self.callOneListener(event, JSON.parse(raw.body), raw, (response) => {
-          self.client.send(raw.headers['reply-to'], {
-            msgId: raw.headers.msgId,
-            ok: true
-          }, JSON.stringify(undefined === response ? null : response));
-        }, (reason) => {
-          self.client.send(raw.headers['reply-to'], {
-            msgId: raw.headers.msgId,
-            ok: false
-          }, JSON.stringify(undefined === reason ? null : reason));
+    constructor(config) {
+        super({
+            wildcard: true,
+            newListener: true
         });
-      }
-    };
 
-    // automatically subscribing on new event listeners
-    this.on('newListener', (event, listener) => {
-      if (self.config.excludedEvents.indexOf(event) < 0) {
-        if (self.listeners(event).length === 0) {
-          var comparison = " = '" + event + "'";
-          if (event.indexOf('*') >= 0) {
-            comparison = " LIKE '" + event.replace(/\*/g, '%') + "'";
-          }
-          subscriptions[event] = {
-            topic: self.client.subscribe('/topic/' + config.destination, callback1.bind(null, event, false), {
-              selector: "event " + comparison + " AND sender <> '" + self.getId() + "'"
-            }),
-            queue: self.client.subscribe('/queue/' + config.destination, callback1.bind(null, event, true), {
-              selector: "event " + comparison + " AND sender <> '" + self.getId() + "'"
-            })
-          };
-        }
-      }
-    });
+        var self = this;
+        self.id = UUID.v4();
+        this.subscriptions = {};
 
-    // automatically unsubscribing if all listeners are removed
-    this.on('removeListener', (event, listener) => {
-      if (self.config.excludedEvents.indexOf(event) < 0) {
-        if (self.listeners(event).length === 0)
-          if (subscriptions.hasOwnProperty(event)) {
-            subscriptions[event].topic.unsubscribe();
-            subscriptions[event].queue.unsubscribe();
-          }
-      }
-    });
-  }
+        config = config || {};
+        this.config = config;
+        config.servers = config.servers || [{
+            'host': 'localhost',
+            'port': 61613,
+            'connectHeaders': {
+                'heart-beat': '5000,5000',
+                'host': '',
+                'login': '',
+                'passcode': ''
+            }
+        }];
+        config.reconnectOpts = config.reconnectOpts || {
+            maxReconnects: 10
+        };
+        config.destination = config.destination || 'distributed-eventemitter';
+        config.excludedEvents = config.excludedEvents || [];
+        config.excludedEvents.push(...['newListener', 'removeListener', 'connected', 'error', 'connecting', 'disconnected']);
 
-  getId() {
-    return this.config.headers['client-id'];
-  }
+        const callback1 = (event, isQueue, raw) => {
+            raw.readString('utf8', (error, jsonstr) => {
+                var data = JSON.parse(jsonstr).d;
 
-  callOneListener(event, message, raw, resolve, reject) {
-    var listeners = this.listeners(event);
-    if (listeners.length > 0) {
-      setImmediate(() => {
-        listeners[0](message, resolve, reject, raw);
-      });
+                if (!isQueue) {
+                    var args = [event];
+                    args.push(...data);
+                    args.push(raw);
+                    self.emit.apply(self, args);
+                } else {
+                    self.callOneListener(event, data, raw, (response) => {
+                        self.channels.channel((error, channel) => {
+                            if (error) {
+                                self.emit('error', error);
+                                return;
+                            }
 
-      return true;
+                            var data = JSON.stringify({ d: (undefined === response ? null : response) });
+                            var headers = {
+                                'destination': '/queue/' + self.config.destination,
+                                'ok': true,
+                                'target': raw.headers['sender'],
+                                'correlation-id': raw.headers['correlation-id']
+                            };
+
+                            channel.send(headers, data, (error) => {
+                                if (error)
+                                    self.emit('error', error);
+                            });
+                        });
+                    }, (reason) => {
+                        self.channels.channel((error, channel) => {
+                            if (error) return;
+
+                            var data = JSON.stringify({ d: (undefined === reason ? null : reason) });
+                            var headers = {
+                                'destination': '/queue/' + self.config.destination,
+                                'ok': false,
+                                'target': raw.headers['sender'],
+                                'correlation-id': raw.headers['correlation-id']
+                            };
+                            channel.send(headers, data, (error) => {
+                                if (error)
+                                    self.emit('error', error);
+                            });
+                        });
+                    });
+                }
+            });
+        };
+
+        // automatically subscribing on new event listeners
+        this.on('newListener', (event, listener) => {
+            if (self.config.excludedEvents.indexOf(event) < 0) {
+                if (self.listeners(event).length === 0) {
+                    var comparison = " = '" + event + "'";
+                    if (event.indexOf('*') >= 0) {
+                        comparison = " LIKE '" + event.replace(/\*/g, '%') + "'";
+                    }
+
+                    self.subscriptions[event] = {};
+                    self.channels.channel((error, channel) => {
+                        channel.subscribe({
+                            destination: '/topic/' + config.destination,
+                            selector: "event " + comparison + " AND sender <> '" + self.getId() + "'",
+                            ack: 'auto'
+                        }, (error, message, subscription) => {
+                            self.subscriptions[event].topic = subscription;
+                            callback1(event, false, message);
+                        });
+
+                        channel.subscribe({
+                            destination: '/queue/' + config.destination,
+                            ack: 'auto',
+                            selector: "event " + comparison + " AND sender <> '" + self.getId() + "'"
+                        }, (error, message, subscription) => {
+                            self.subscriptions[event].queue = subscription;
+                            callback1(event, true, message);
+                        });
+                    });
+                }
+            }
+        });
+
+        // automatically unsubscribing if all listeners are removed
+        this.on('removeListener', (event, listener) => {
+            if (self.config.excludedEvents.indexOf(event) < 0) {
+                if (self.listeners(event).length === 0)
+                    if (self.subscriptions.hasOwnProperty(event)) {
+                        if (undefined !== self.subscriptions[event].topic)
+                            self.subscriptions[event].topic.unsubscribe();
+                        if (undefined !== self.subscriptions[event].queue)
+                            self.subscriptions[event].queue.unsubscribe();
+                    }
+            }
+        });
     }
 
-    return false;
-  }
+    getId() {
+        return this.id;
+    }
 
-  connect() {
-    var self = this;
-    self.promises = {};
+    callOneListener(event, data, raw, resolve, reject) {
+        var listeners = this.listeners(event);
+        if (listeners.length > 0) {
+            setImmediate(() => {
+                try {
+                    listeners[0](data, resolve, reject, raw);
+                } catch (error) {
+                    reject(error.message);
+                }
+            });
 
-    return new Promise((resolve, reject) => {
-      self.client = 'ws' === self.config.protocol ? Stomp.overWS(self.config.url) : Stomp.overTCP(self.config.host, self.config.port);
-      self.client.connect(self.config.username, self.config.password, () => {
-        self.client.subscribe('/temp-queue/' + self.getId(), (raw) => {
-          var msgId = raw.headers.msgId;
-          var p = self.promises[msgId];
-          delete self.promises[msgId];
+            return true;
+        }
 
-          if (undefined !== p)
-            if ('true' === raw.headers.ok) {
-              p.resolve(JSON.parse(raw.body));
-            } else {
-              p.reject(JSON.parse(raw.body));
+        return false;
+    }
+
+    connect() {
+        var self = this;
+        self.promises = {};
+
+        return new Promise((resolve, reject) => {
+            self.connections = new Stomp.ConnectFailover(self.config.servers, self.config.reconnectOpts);
+            self.channels = new Stomp.ChannelPool(self.connections);
+
+            self.connections.on('error', (error) => {
+                self.emit('error', error);
+            });
+            self.connections.on('connecting', (connector) => {
+                self.emit('connecting', connector);
+            });
+
+            self.channels.channel((error, channel) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    channel.subscribe({
+                        destination: '/queue/' + self.config.destination,
+                        ack: 'auto',
+                        selector: "target = '" + self.getId() + "'"
+                    }, (error, raw, subscription) => {
+                        if (error) {
+                            self.emit('error', error);
+                            return;
+                        }
+
+                        raw.readString('utf8', (error, jsonstr) => {
+                            var msgId = raw.headers['correlation-id'];
+                            var p = self.promises[msgId];
+                            delete self.promises[msgId];
+
+                            if (undefined !== p) {
+                                var data = JSON.parse(jsonstr).d;
+                                if ('true' === raw.headers.ok) {
+                                    p.resolve(data);
+                                } else {
+                                    p.reject(data);
+                                }
+                            }
+                        });
+                    });
+
+                    self.emit('connected', self.getId());
+                    resolve();
+                }
+            });
+        });
+    }
+
+    disconnect() {
+        var self = this;
+        return new Promise((resolve, reject) => {
+            self.channels.close();
+            self.emit('disconnected', self.getId());
+            resolve();
+        });
+    }
+
+    emitToOne(event, message, timeout) {
+        timeout = timeout || 0;
+        var self = this;
+        return new Promise((resolve, reject) => {
+            var msgId = UUID.v4();
+
+            var tid;
+            if (timeout > 0) {
+                tid = setTimeout(() => {
+                    self.promises[msgId].reject('timeout');
+                }, timeout);
             }
-        }, {});
-        resolve();
-        self.emit('connected');
-      }, (error) => {
-        reject(error);
-        self.emit('error', error);
-      });
-    });
-  }
+            self.promises[msgId] = {
+                resolve: (response) => {
+                    clearTimeout(tid);
+                    delete self.promises[msgId];
+                    resolve(response);
+                },
+                reject: (reason) => {
+                    clearTimeout(tid);
+                    delete self.promises[msgId];
+                    reject(reason);
+                }
+            };
 
-  disconnect() {
-    var self = this;
-    return new Promise((resolve, reject) => {
-      self.client.disconnect(() => {
-        resolve();
-        self.emit('disconnected');
-      });
-    });
-  }
+            if (!(self.callOneListener(event, message, null, self.promises[msgId].resolve, self.promises[msgId].reject))) {
+                self.channels.channel((error, channel) => {
+                    if (error) return;
 
-  emitToOne(event, message, timeout) {
-    timeout = timeout || 0;
-    var self = this;
-    return new Promise((resolve, reject) => {
-      var msgId = UUID.v4();
+                    var data = JSON.stringify({ d: (undefined === message ? null : message) });
+                    var headers = {
+                        'destination': '/queue/' + self.config.destination,
+                        'event': event,
+                        'sender': self.getId(),
+                        'priority': 9,
+                        'correlation-id': msgId
+                    };
 
-      var tid;
-      if (timeout > 0) {
-        tid = setTimeout(() => {
-          self.promises[msgId].reject('timeout');
-        }, timeout);
-      }
-      self.promises[msgId] = {
-        resolve: (response) => {
-          clearTimeout(tid);
-          delete self.promises[msgId];
-          resolve(response);
-        },
-        reject: (reason) => {
-          clearTimeout(tid);
-          delete self.promises[msgId];
-          reject(reason);
-        }
-      };
+                    if (timeout > 0) {
+                        headers.expires = new Date().getTime() + timeout;
+                    }
+                    channel.send(headers, data, (error) => {
+                        if (error)
+                            self.emit('error', error);
+                    });
+                });
+            }
+        });
+    }
 
-      if (!(self.callOneListener(event, message, null, self.promises[msgId].resolve, self.promises[msgId].reject))) {
-        var headers = {
-          event: event,
-          msgId: msgId,
-          sender: self.getId(),
-          priority: 9,
-          'reply-to': '/temp-queue/' + self.getId()
-        };
-        if (timeout > 0) {
-          headers.expires = new Date().getTime() + timeout;
-        }
+    emit(event, ...args) {
+        var self = this;
+        return new Promise((resolve, reject) => {
+            if (self.config.excludedEvents.indexOf(event) < 0)
+                self.channels.channel((error, channel) => {
+                    if (error) return;
 
-        self.client.send('/queue/' + self.config.destination, headers, JSON.stringify(message));
-      }
-    });
-  }
+                    var data = JSON.stringify({ d: (undefined === args ? [] : args) });
+                    var headers = {
+                        'destination': '/topic/' + self.config.destination,
+                        'event': event,
+                        'sender': self.getId(),
+                        'priority': 9
+                    };
 
-  emit(event, ...args) {
-    var self = this;
-    return new Promise((resolve, reject) => {
-      if (self.config.excludedEvents.indexOf(event) < 0) {
-        self.client.send('/topic/' + self.config.destination, {
-          event: event,
-          sender: self.getId()
-        }, JSON.stringify(args));
-      }
-      super.emit.apply(this, arguments);
+                    channel.send(headers, data, (error) => {
+                        if (error)
+                            self.emit('error', error);
+                    });
+                });
 
-      resolve();
-    });
-  }
+            super.emit.apply(this, arguments);
+
+            resolve();
+        });
+    }
 }
 
 module.exports = DistributedEventEmitter;

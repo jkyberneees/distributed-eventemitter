@@ -1,7 +1,7 @@
 {
   "name": "distributed-eventemitter",
   "description": "The ultra fast, distributed (multi process and multi server), STOMP based event emitter for Node.js!",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "keywords": ["event", "emitter", "distributed", "messaging", "cluster",
     "scaling", "high availability", "stomp", "jms", "message"
   ],
@@ -10,7 +10,7 @@
   "dependencies": {
     "uuid": "2.0.1",
     "eventemitter2": "1.0.0",
-    "stompjs": "2.3.3"
+    "stompit": "0.22.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
