@@ -1,6 +1,9 @@
 
 # Why?
-  The library solve the need of a multi process and multi server oriented messaging API in Node.js.<br>  Using the known [EventEmitter](https://nodejs.org/api/events.html/) API, listeners registration and events emitting is super simple.<br>  A new 'emitToOne' method allows one-to-one events notification, intended for request/response flows on clustered services. The classic 'emit' method broadcast custom events to local and distributed listeners.
+  The library solve the need of a multi process and multi server oriented messaging API in Node.js.
+  <br> Using the known [EventEmitter](https://nodejs.org/api/events.html/) API, listeners registration and events emitting is super simple.
+  <br> A new 'emitToOne' method allows one-to-one events notification, intended for request/response flows on clustered services. 
+  <br> The classic 'emit' method broadcast custom events to local and distributed listeners.
 
 # Quick Start
 1. Mailer server (A.js):
