@@ -47,7 +47,7 @@ class DistributedEventEmitter extends EventEmitter {
         };
         config.destination = config.destination || 'distributed-eventemitter';
         config.excludedEvents = config.excludedEvents || [];
-        config.excludedEvents.push(...['newListener', 'removeListener', 'connected', 'error', 'connecting', 'disconnected']);
+        config.excludedEvents.push(...['newListener', 'removeListener', 'connected', 'error', 'connecting', 'disconnected', 'request', 'response']);
 
         const callback1 = (event, isQueue, raw) => {
             raw.readString('utf8', (error, jsonstr) => {
@@ -152,13 +152,30 @@ class DistributedEventEmitter extends EventEmitter {
     }
 
     callOneListener(event, data, raw, resolve, reject) {
+        var self = this;
+        var resolveproxy = (response) => {
+            let obj = { data: response, ok: true };
+            self.emit("response", event, obj, raw);
+
+            resolve(obj.data);
+        };
+        var rejectproxy = (reason) => {
+            let obj = { data: reason, ok: false };
+            self.emit("response", event, obj, raw);
+
+            reject(obj.data);
+        };
+
         var listeners = this.listeners(event);
         if (listeners.length > 0) {
             setImmediate(() => {
                 try {
-                    listeners[0](data, resolve, reject, raw);
+                    let obj = { data: data };
+                    self.emit("request", event, obj, raw);
+
+                    listeners[0](obj.data, resolveproxy, rejectproxy, raw);
                 } catch (error) {
-                    reject(error.message);
+                    rejectproxy(error.message);
                 }
             });
 
