@@ -64,7 +64,7 @@ describe('Basic', () => {
 
     describe('subscribing', () => {
         it('event: news.*', () => {
-            var callback = (message) => {
+            var callback = (data) => {
                 // should be called only if message is published
                 // then, intentionally we set null in 'data' property
                 messagein = {
@@ -73,8 +73,8 @@ describe('Basic', () => {
             };
 
             incoming.on('news.*', callback);
-            incoming.on('news.*', (message) => {
-                messagein = message;
+            incoming.on('news.*', (data) => {
+                messagein = data;
             });
             incoming.removeListener('news.*', callback);
 
@@ -127,14 +127,26 @@ describe('Promise', () => {
 
     describe('subscribing', () => {
         it('event: my.action', (done) => {
-            incoming.on('my.action', (message, resolve, reject) => {
-                if (typeof (message) === 'string')
+            incoming.on('request', (event, request) => {
+                if ('my.action' === event) {
+                    if ('string' === typeof request.data) {
+                        request.data = request.data.toUpperCase();
+                    }
+                }
+            });
+            incoming.on('response', (event, response) => {
+                if ('my.action' === event && response.ok) {
+                    response.data = response.data.toUpperCase();
+                }
+            });
+            incoming.on('my.action', (data, resolve, reject) => {
+                if (typeof (data) === 'string' && 'HI THERE...' === data) {
                     resolve('hello');
-                else {
+                } else {
                     reject('invalid type');
                 }
             });
-            incoming.on('my.action2', (message, resolve, reject) => {
+            incoming.on('my.action2', (data, resolve, reject) => {
                 resolve();
             });
             done();
@@ -144,7 +156,7 @@ describe('Promise', () => {
     describe('emitToOne (distributed)', () => {
         it("emitting to 'my.action' > 'Hi there...'", (done) => {
             outgoing.emitToOne('my.action', 'Hi there...').then((response) => {
-                expect('hello').to.equal(response);
+                expect('HELLO').to.equal(response);
                 done();
             });
         });
@@ -152,8 +164,8 @@ describe('Promise', () => {
 
     describe('emitToOne (local)', () => {
         it("emitting to 'my.action.local' > 'Hi there...'", (done) => {
-            outgoing.on('my.action.local', (message, resolve) => {
-                if (typeof (message) === 'string')
+            outgoing.on('my.action.local', (data, resolve) => {
+                if (typeof (data) === 'string')
                     resolve('hello');
                 else
                     reject('invalid type');
