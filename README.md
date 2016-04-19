@@ -1,3 +1,7 @@
+
+# Why?
+  The library solve the need of a multi process and multi server oriented messaging API in Node.js.<br>  Using the known [EventEmitter](https://nodejs.org/api/events.html/) API, listeners registration and events emitting is super simple.<br>  A new 'emitToOne' method allows one-to-one events notification, intended for request/response flows on clustered services. The classic 'emit' method broadcast custom events to local and distributed listeners.
+
 # Quick Start
 1. Mailer server (A.js):
 
@@ -100,8 +104,44 @@ var events = new EventEmitter(config);
 ```
   For more details about 'servers' and 'reconnectOpts' params please check: http://gdaws.github.io/node-stomp/api/connect-failover/ 
 
-# Why?
-  The library solve the need of a multi process and multi server oriented messaging API in Node.js.<br>  Using the known [EventEmitter](https://nodejs.org/api/events.html/) API, listeners registration and events emitting is super simple.<br>  A new 'emitToOne' method allows one-to-one events notification, intended for request/response flows on clustered services. The classic 'emit' method broadcast custom events to local and distributed listeners.
+# Internal events
+```js
+events.on('connected', (emitterId) => {
+    // triggered when the emitter has been connected to the network (STOMP server)
+});
+
+events.on('disconnected', (emitterId) => {
+    // triggered when the emitter has been disconnected from the network (STOMP server)
+});
+
+events.on('error', (error) => {
+   // triggered when an error ocurrs in the connection channel. 
+}):
+
+events.on('connecting', (connector) => {
+   // triggered when the STOMP client is trying to connect to a server.
+}):
+
+events.on('request', (event, request, raw) => {
+   // triggered before invoke a listener using emitToOne feature
+   
+   // request data filtering and modification is allowed
+   // example:
+   request.data = ('string' === typeof request.data) ? request.data.toUpperCase() : request.data
+}):
+
+events.on('response', (event, response, raw) => {
+   // triggered after invoke a listener using emitToOne feature
+   
+   // response data filtering and modification is allowed
+   // example:
+   if (response.ok)
+     response.data = ('string' === typeof response.data) ? response.data.toUpperCase() : response.data
+   else 
+     console.log('error ocurred: ' + response.data.message);
+}):
+
+```
 
 # API
 **getId**: Get the emitter instance unique id.
@@ -150,6 +190,9 @@ events.emitToOne('my.event', {data: 'hello'}, 100).catch((error) => {
 # Roadmap
 
 1. Express integration.
+
+# Known limitations
+  - The feature 'emitAsync' from the EventEmitter2, only work locally(not distributed).
 
 # Tests
 
