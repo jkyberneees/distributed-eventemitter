@@ -118,7 +118,7 @@ events.on('disconnected', (emitterId) => {
 });
 
 events.on('error', (error) => {
-   // triggered when an error ocurrs in the connection channel. 
+   // triggered when an error occurs in the connection channel. 
 }):
 
 events.on('connecting', (connector) => {
