@@ -208,3 +208,7 @@ $ npm test
 ## 1.1.x
   - From version 1.1.0+ we use Stompit as STOMP client because Stompjs does not support server reconnections and is also unmaintained.
   - No API changes from 1.0 version except the configuration params, since now we consider a list of STOMP servers to connect/reconnect.
+## 1.1.1
+  - Supporting request/request events intended for pre invocation content filtering and modification.
+## 1.1.2
+  - Fixing dependencies declaration (due to automatic modification from 'npm update --save').
