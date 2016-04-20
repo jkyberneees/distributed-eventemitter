@@ -19,15 +19,14 @@
   "dependencies": {
     "eventemitter2": "~1.0.0",
     "stompit": "~0.22.0",
-    "traceur": "0.0.107",
-    "uuid": "^2.0.2"
+    "uuid": "~2.0.2"
   },
   "license": "Apache-2.0",
   "devDependencies": {
     "chai": "~3.5.0",
     "mocha": "~2.4.5",
     "mocha-traceur": "~2.1.0",
-    "traceur": "~0.0.105"
+    "traceur": "~0.0.107"
   },
   "main": "main.js",
   "repository": "git://github.com/jkyberneees/distributed-eventemitter",
