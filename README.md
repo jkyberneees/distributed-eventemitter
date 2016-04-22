@@ -214,3 +214,6 @@ $ npm test
 
 ## 1.1.2
   - Fixing dependencies declaration (due to automatic modification from 'npm update --save').
+  
+## 1.1.3
+  - Fixing issue on distributed events broadcast(emit) that caused repeated broadcasts.
