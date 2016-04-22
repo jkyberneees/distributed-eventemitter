@@ -26,9 +26,14 @@ class DistributedEventEmitter extends EventEmitter {
             newListener: true
         });
 
+
         var self = this;
         self.id = UUID.v4();
         this.subscriptions = {};
+
+        const emit = (args) => {
+            super.emit.apply(self, args);
+        };
 
         config = config || {};
         this.config = config;
@@ -57,7 +62,7 @@ class DistributedEventEmitter extends EventEmitter {
                     var args = [event];
                     args.push(...data);
                     args.push(raw);
-                    self.emit.apply(self, args);
+                    emit(args);
                 } else {
                     self.callOneListener(event, data, raw, (response) => {
                         self.channels.channel((error, channel) => {
