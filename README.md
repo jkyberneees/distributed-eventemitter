@@ -51,6 +51,32 @@
   node --harmony B.js
   ```
 
+## Example using ES6 generators
+```js 
+"use strict";
+
+const EventEmitter = require('../main.js');
+const co = require('co');
+const events = new EventEmitter(); // host: localhost, port: 61613
+
+co(function* () {
+    try {
+        yield events.connect();
+        let response = yield events.emitToOne('email.send', {
+            to: 'kyberneees@gmail.com',
+            subject: 'Hello Node.js',
+            body: 'Introducing easy distributed messaging for Node.js...'
+        }, 3000);
+
+        if ('sent' === response) {
+            console.log('email was sent!');
+        }
+    } catch (error) {
+        console.log('error: ' + error);
+    }
+});
+```
+
 # Requirements
 - Running [STOMP compliant server](http://activemq.apache.org/installation.html) instance. Default client destinations are:
   1. _/topic/distributed-eventemitter_: Used for events broadcast (emit)
