@@ -14,9 +14,10 @@
  limitations under the License.0
  */
 /*jshint esversion: 6*/
+"use strict";
 
-var EventEmitter = require('../main.js');
-var events = new EventEmitter(); // host: localhost, port: 61613
+const EventEmitter = require('../main.js');
+const events = new EventEmitter(); // host: localhost, port: 61613
 events.connect().then(() => {
     events.emitToOne('email.send', {
         to: 'kyberneees@gmail.com',

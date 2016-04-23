@@ -17,6 +17,7 @@
   "author": "Rolando Santamaria Maso <kyberneees@gmail.com>",
   "contributors": [],
   "dependencies": {
+    "co": "^4.6.0",
     "eventemitter2": "~1.0.0",
     "stompit": "~0.22.0",
     "uuid": "~2.0.2"

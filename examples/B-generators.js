@@ -17,13 +17,22 @@
 "use strict";
 
 const EventEmitter = require('../main.js');
+const co = require('co');
 const events = new EventEmitter(); // host: localhost, port: 61613
-events.connect().then(() => {
-    events.on('email.send', (message, resolve, reject) => {
-        console.log('sending email...');
-        //... send email
-        // ...
 
-        resolve('sent');
-    });
+co(function* () {
+    try {
+        yield events.connect();
+        let response = yield events.emitToOne('email.send', {
+            to: 'kyberneees@gmail.com',
+            subject: 'Hello Node.js',
+            body: 'Introducing easy distributed messaging for Node.js...'
+        }, 3000);
+
+        if ('sent' === response) {
+            console.log('email was sent!');
+        }
+    } catch (error) {
+        console.log('error: ' + error);
+    }
 });

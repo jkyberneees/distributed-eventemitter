@@ -14,6 +14,7 @@
  limitations under the License.0
  */
 /*jshint esversion: 6*/
+"use strict";
 
 const Stomp = require('stompit');
 const UUID = require('uuid');
