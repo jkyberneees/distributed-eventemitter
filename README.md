@@ -243,3 +243,6 @@ $ npm test
   
 ## 1.1.3
   - Fixing issue on distributed events broadcast(emit) that caused repeated broadcasts.
+  
+## 1.1.4
+  - Updating dependencies and adding generators example to docs. 
