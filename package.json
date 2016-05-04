@@ -1,7 +1,7 @@
 {
   "name": "distributed-eventemitter",
   "description": "The ultra fast, distributed (multi process and multi server), STOMP based event emitter for Node.js!",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "keywords": [
     "event",
     "emitter",
@@ -18,16 +18,16 @@
   "contributors": [],
   "dependencies": {
     "co": "^4.6.0",
-    "eventemitter2": "^1.0.2",
-    "stompit": "^0.22.0",
+    "eventemitter2": "^1.0.3",
+    "stompit": "^0.23.0",
     "uuid": "^2.0.2"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "chai": "^3.5.0",
-    "mocha": "^2.4.5",
-    "mocha-traceur": "^2.1.0",
-    "traceur": "^0.0.107"
+    "chai": "^3",
+    "mocha": "^2",
+    "mocha-traceur": "^2",
+    "traceur": "^0"
   },
   "main": "main.js",
   "repository": "git://github.com/jkyberneees/distributed-eventemitter",
