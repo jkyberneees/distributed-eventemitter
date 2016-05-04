@@ -55,7 +55,7 @@
 ```js 
 "use strict";
 
-const EventEmitter = require('../main.js');
+const EventEmitter = require('distributed-eventemitter');
 const co = require('co');
 const events = new EventEmitter(); // host: localhost, port: 61613
 
@@ -71,6 +71,7 @@ co(function* () {
         if ('sent' === response) {
             console.log('email was sent!');
         }
+        yield events.disconnect();
     } catch (error) {
         console.log('error: ' + error);
     }
@@ -246,3 +247,6 @@ $ npm test
   
 ## 1.1.4
   - Updating dependencies and adding generators example to docs. 
+  
+## 1.1.5
+  - Updating dependencies and docs. 
