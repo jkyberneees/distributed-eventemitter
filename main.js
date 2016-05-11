@@ -27,7 +27,6 @@ class DistributedEventEmitter extends EventEmitter {
             newListener: true
         });
 
-
         var self = this;
         self.id = UUID.v4();
         this.subscriptions = {};
@@ -122,8 +121,12 @@ class DistributedEventEmitter extends EventEmitter {
                             selector: "event " + comparison + " AND sender <> '" + self.getId() + "'",
                             ack: 'auto'
                         }, (error, message, subscription) => {
-                            self.subscriptions[event].topic = subscription;
-                            callback1(event, false, message);
+                            if (error) {
+                                self.emit('error', error);
+                            } else {
+                                self.subscriptions[event].topic = subscription;
+                                callback1(event, false, message);
+                            }
                         });
 
                         channel.subscribe({
@@ -131,8 +134,12 @@ class DistributedEventEmitter extends EventEmitter {
                             ack: 'auto',
                             selector: "event " + comparison + " AND sender <> '" + self.getId() + "'"
                         }, (error, message, subscription) => {
-                            self.subscriptions[event].queue = subscription;
-                            callback1(event, true, message);
+                            if (error) {
+                                self.emit('error', error);
+                            } else {
+                                self.subscriptions[event].queue = subscription;
+                                callback1(event, true, message);
+                            }
                         });
                     });
                 }
