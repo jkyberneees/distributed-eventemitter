@@ -250,3 +250,7 @@ $ npm test
   
 ## 1.1.5
   - Updating dependencies and docs. 
+
+## 1.1.6 
+  - Improving unexpected error handling when data can't be transmited because the STOMP connection is closed. 
+  Produced exceptions are notified as an 'error' event on the emitter.
