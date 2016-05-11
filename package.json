@@ -1,46 +1,46 @@
 {
-  "name": "distributed-eventemitter",
-  "description": "The ultra fast, distributed (multi process and multi server), STOMP based event emitter for Node.js!",
-  "version": "1.1.5",
-  "keywords": [
-    "event",
-    "emitter",
-    "distributed",
-    "messaging",
-    "cluster",
-    "scaling",
-    "high availability",
-    "stomp",
-    "jms",
-    "message"
-  ],
-  "author": "Rolando Santamaria Maso <kyberneees@gmail.com>",
-  "contributors": [],
-  "dependencies": {
-    "co": "^4.6.0",
-    "eventemitter2": "^1.0.3",
-    "stompit": "^0.23.0",
-    "uuid": "^2.0.2"
-  },
-  "license": "Apache-2.0",
-  "devDependencies": {
-    "chai": "^3",
-    "mocha": "^2",
-    "mocha-traceur": "^2",
-    "traceur": "^0"
-  },
-  "main": "main.js",
-  "repository": "git://github.com/jkyberneees/distributed-eventemitter",
-  "files": [
-    "LICENSE",
-    "Readme.md",
-    "main.js",
-    "tests.js"
-  ],
-  "scripts": {
-    "test": "mocha tests --compilers js:mocha-traceur"
-  },
-  "engines": {
-    "node": ">= 0.12"
-  }
+    "name": "distributed-eventemitter",
+    "description": "The ultra fast, distributed (multi process and multi server), STOMP based event emitter for Node.js!",
+    "version": "1.1.6",
+    "keywords": [
+        "event",
+        "emitter",
+        "distributed",
+        "messaging",
+        "cluster",
+        "scaling",
+        "high availability",
+        "stomp",
+        "jms",
+        "message"
+    ],
+    "author": "Rolando Santamaria Maso <kyberneees@gmail.com>",
+    "contributors": [],
+    "dependencies": {
+        "co": "^4",
+        "eventemitter2": "^1",
+        "stompit": "^0",
+        "uuid": "^2"
+    },
+    "license": "Apache-2.0",
+    "devDependencies": {
+        "chai": "^3",
+        "mocha": "^2",
+        "mocha-traceur": "^2",
+        "traceur": "^0"
+    },
+    "main": "main.js",
+    "repository": "git://github.com/jkyberneees/distributed-eventemitter",
+    "files": [
+        "LICENSE",
+        "README.md",
+        "main.js",
+        "tests.js"
+    ],
+    "scripts": {
+        "test": "mocha tests --compilers js:mocha-traceur"
+    },
+    "engines": {
+        "node": ">= 0.12"
+    }
 }
