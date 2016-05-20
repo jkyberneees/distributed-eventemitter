@@ -1,7 +1,7 @@
 {
     "name": "distributed-eventemitter",
     "description": "The ultra fast, distributed (multi process and multi server), STOMP based event emitter for Node.js!",
-    "version": "1.1.6",
+    "version": "1.2.0",
     "keywords": [
         "event",
         "emitter",
