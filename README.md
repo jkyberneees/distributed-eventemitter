@@ -4,6 +4,8 @@
   <br> Using the known [EventEmitter](https://nodejs.org/api/events.html/) API, listeners registration and events emitting is super simple.
   <br> A new 'emitToOne' method allows one-to-one events notification, intended for request/response flows on clustered services. 
   <br> The classic 'emit' method broadcast custom events to local and distributed listeners.
+  
+  For non-distributed usage of this API (browser, single node process or development) developers can use: [process-eventemitter](https://github.com/jkyberneees/process-eventemitter)
 
 # Quick Start
 1. Mailer server (A.js):
@@ -257,4 +259,4 @@ $ npm test
   
 ## 1.2.0
   - Supporting [jWebSocket EventBus](http://jwebsocket.org/documentation/reference-guide/event-bus). 
-  jWebSocket applications(Java or Nashorn) can communicate with nodejs services using this module.
+  JVM based applications using the jWebSocket EventBus component, can communicate with nodejs services through this module.
