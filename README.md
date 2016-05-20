@@ -254,3 +254,7 @@ $ npm test
 ## 1.1.6 
   - Improving unexpected error handling when data can't be transmited because the STOMP connection is closed. 
   Produced exceptions are notified as an 'error' event on the emitter.
+  
+## 1.2.0
+  - Supporting [jWebSocket EventBus](http://jwebsocket.org/documentation/reference-guide/event-bus). 
+  jWebSocket applications(Java or Nashorn) can communicate with nodejs services using this module.
