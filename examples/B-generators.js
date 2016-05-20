@@ -10,17 +10,16 @@
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specifi8c language governing permissions and
- limitations under the License.0
+ See the License for the specific language governing permissions and
+ limitations under the License.
  */
-/*jshint esversion: 6*/
 "use strict";
 
 const EventEmitter = require('../main.js');
 const co = require('co');
 const events = new EventEmitter(); // host: localhost, port: 61613
 
-co(function* () {
+co(function*() {
     try {
         yield events.connect();
         let response = yield events.emitToOne('email.send', {

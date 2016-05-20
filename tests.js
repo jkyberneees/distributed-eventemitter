@@ -10,11 +10,9 @@
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specifi8c language governing permissions and
- limitations under the License.0
+ See the License for the specific language governing permissions and
+ limitations under the License.
  */
-/*jshint esversion: 6*/
-
 const expect = require("chai").expect;
 const DistributedEventEmitter = require("./main.js");
 
@@ -140,7 +138,7 @@ describe('Promise', () => {
                 }
             });
             incoming.on('my.action', (data, resolve, reject) => {
-                if (typeof (data) === 'string' && 'HI THERE...' === data) {
+                if (typeof(data) === 'string' && 'HI THERE...' === data) {
                     resolve('hello');
                 } else {
                     reject('invalid type');
@@ -165,7 +163,7 @@ describe('Promise', () => {
     describe('emitToOne (local)', () => {
         it("emitting to 'my.action.local' > 'Hi there...'", (done) => {
             outgoing.on('my.action.local', (data, resolve) => {
-                if (typeof (data) === 'string')
+                if (typeof(data) === 'string')
                     resolve('hello');
                 else
                     reject('invalid type');
