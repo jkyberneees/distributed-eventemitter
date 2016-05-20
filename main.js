@@ -10,15 +10,28 @@
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specifi8c language governing permissions and
- limitations under the License.0
+ See the License for the specific language governing permissions and
+ limitations under the License.
  */
-/*jshint esversion: 6*/
 "use strict";
 
 const Stomp = require('stompit');
 const UUID = require('uuid');
 const EventEmitter = require('eventemitter2').EventEmitter2;
+
+const parseDataIn = (jsonstr) => {
+    // jwebsocket integration
+    var data = JSON.parse(jsonstr);
+    if (1 === Object.keys(data).length) {
+        data = data.d;
+    } else {
+        delete data['_sender'];
+        delete data['message_uuid'];
+        delete data['origin_message_uuid'];
+    }
+
+    return data;
+};
 
 class DistributedEventEmitter extends EventEmitter {
     constructor(config) {
@@ -56,7 +69,7 @@ class DistributedEventEmitter extends EventEmitter {
 
         const callback1 = (event, isQueue, raw) => {
             raw.readString('utf8', (error, jsonstr) => {
-                var data = JSON.parse(jsonstr).d;
+                var data = parseDataIn(jsonstr);
 
                 if (!isQueue) {
                     var args = [event];
@@ -71,7 +84,9 @@ class DistributedEventEmitter extends EventEmitter {
                                 return;
                             }
 
-                            var data = JSON.stringify({ d: (undefined === response ? null : response) });
+                            var data = JSON.stringify({
+                                d: (undefined === response ? null : response)
+                            });
                             var headers = {
                                 'destination': '/queue/' + self.config.destination,
                                 'ok': true,
@@ -88,7 +103,9 @@ class DistributedEventEmitter extends EventEmitter {
                         self.channels.channel((error, channel) => {
                             if (error) return;
 
-                            var data = JSON.stringify({ d: (undefined === reason ? null : reason) });
+                            var data = JSON.stringify({
+                                d: (undefined === reason ? null : reason)
+                            });
                             var headers = {
                                 'destination': '/queue/' + self.config.destination,
                                 'ok': false,
@@ -167,13 +184,19 @@ class DistributedEventEmitter extends EventEmitter {
     callOneListener(event, data, raw, resolve, reject) {
         var self = this;
         var resolveproxy = (response) => {
-            let obj = { data: response, ok: true };
+            let obj = {
+                data: response,
+                ok: true
+            };
             self.emit("response", event, obj, raw);
 
             resolve(obj.data);
         };
         var rejectproxy = (reason) => {
-            let obj = { data: reason, ok: false };
+            let obj = {
+                data: reason,
+                ok: false
+            };
             self.emit("response", event, obj, raw);
 
             reject(obj.data);
@@ -183,7 +206,9 @@ class DistributedEventEmitter extends EventEmitter {
         if (listeners.length > 0) {
             setImmediate(() => {
                 try {
-                    let obj = { data: data };
+                    let obj = {
+                        data: data
+                    };
                     self.emit("request", event, obj, raw);
 
                     listeners[0](obj.data, resolveproxy, rejectproxy, raw);
@@ -233,7 +258,8 @@ class DistributedEventEmitter extends EventEmitter {
                             delete self.promises[msgId];
 
                             if (undefined !== p) {
-                                var data = JSON.parse(jsonstr).d;
+                                var data = parseDataIn(jsonstr)
+
                                 if ('true' === raw.headers.ok) {
                                     p.resolve(data);
                                 } else {
@@ -288,7 +314,9 @@ class DistributedEventEmitter extends EventEmitter {
                 self.channels.channel((error, channel) => {
                     if (error) return;
 
-                    var data = JSON.stringify({ d: (undefined === message ? null : message) });
+                    var data = JSON.stringify({
+                        d: (undefined === message ? null : message)
+                    });
                     var headers = {
                         'destination': '/queue/' + self.config.destination,
                         'event': event,
@@ -316,7 +344,9 @@ class DistributedEventEmitter extends EventEmitter {
                 self.channels.channel((error, channel) => {
                     if (error) return;
 
-                    var data = JSON.stringify({ d: (undefined === args ? [] : args) });
+                    var data = JSON.stringify({
+                        d: (undefined === args ? [] : args)
+                    });
                     var headers = {
                         'destination': '/topic/' + self.config.destination,
                         'event': event,
