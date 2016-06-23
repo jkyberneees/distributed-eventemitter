@@ -7,6 +7,9 @@
   
   For non-distributed usage of this API (browser, single node process or development) developers can use: [process-eventemitter](https://github.com/jkyberneees/process-eventemitter)
 
+  > Donate to support the evolution of this project:  
+  [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6LVSDLF7D863G)
+
 # Quick Start
 1. Mailer server (A.js):
 
