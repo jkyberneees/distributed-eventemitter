@@ -87,7 +87,7 @@ describe('Basic', () => {
             setTimeout(() => {
                 expect(messageout.data).to.equal(messagein.data);
                 done();
-            }, 100);
+            }, 250);
         });
     });
 
@@ -138,7 +138,7 @@ describe('Promise', () => {
                 }
             });
             incoming.on('my.action', (data, resolve, reject) => {
-                if (typeof(data) === 'string' && 'HI THERE...' === data) {
+                if (typeof (data) === 'string' && 'HI THERE...' === data) {
                     resolve('hello');
                 } else {
                     reject('invalid type');
@@ -163,7 +163,7 @@ describe('Promise', () => {
     describe('emitToOne (local)', () => {
         it("emitting to 'my.action.local' > 'Hi there...'", (done) => {
             outgoing.on('my.action.local', (data, resolve) => {
-                if (typeof(data) === 'string')
+                if (typeof (data) === 'string')
                     resolve('hello');
                 else
                     reject('invalid type');

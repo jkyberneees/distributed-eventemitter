@@ -263,3 +263,7 @@ $ npm test
 ## 1.2.0
   - Supporting [jWebSocket EventBus](http://jwebsocket.org/documentation/reference-guide/event-bus). 
   JVM based applications using the jWebSocket EventBus component, can communicate with nodejs services through this module.
+
+## 1.2.1
+  - Minor source code refactorization. 
+  - Package updates.

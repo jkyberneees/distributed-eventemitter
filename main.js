@@ -21,7 +21,7 @@ const EventEmitter = require('eventemitter2').EventEmitter2;
 
 const parseDataIn = (jsonstr) => {
     // jwebsocket integration
-    var data = JSON.parse(jsonstr);
+    let data = JSON.parse(jsonstr);
     if (1 === Object.keys(data).length) {
         data = data.d;
     } else {
@@ -40,7 +40,7 @@ class DistributedEventEmitter extends EventEmitter {
             newListener: true
         });
 
-        var self = this;
+        let self = this;
         self.id = UUID.v4();
         this.subscriptions = {};
 
@@ -69,10 +69,9 @@ class DistributedEventEmitter extends EventEmitter {
 
         const callback1 = (event, isQueue, raw) => {
             raw.readString('utf8', (error, jsonstr) => {
-                var data = parseDataIn(jsonstr);
-
+                let data = parseDataIn(jsonstr);
                 if (!isQueue) {
-                    var args = [event];
+                    let args = [event];
                     args.push(...data);
                     args.push(raw);
                     emit(args);
@@ -84,10 +83,10 @@ class DistributedEventEmitter extends EventEmitter {
                                 return;
                             }
 
-                            var data = JSON.stringify({
+                            let data = JSON.stringify({
                                 d: (undefined === response ? null : response)
                             });
-                            var headers = {
+                            let headers = {
                                 'destination': '/queue/' + self.config.destination,
                                 'ok': true,
                                 'target': raw.headers['sender'],
@@ -103,10 +102,10 @@ class DistributedEventEmitter extends EventEmitter {
                         self.channels.channel((error, channel) => {
                             if (error) return;
 
-                            var data = JSON.stringify({
+                            let data = JSON.stringify({
                                 d: (undefined === reason ? null : reason)
                             });
-                            var headers = {
+                            let headers = {
                                 'destination': '/queue/' + self.config.destination,
                                 'ok': false,
                                 'target': raw.headers['sender'],
@@ -126,7 +125,7 @@ class DistributedEventEmitter extends EventEmitter {
         this.on('newListener', (event, listener) => {
             if (self.config.excludedEvents.indexOf(event) < 0) {
                 if (self.listeners(event).length === 0) {
-                    var comparison = " = '" + event + "'";
+                    let comparison = " = '" + event + "'";
                     if (event.indexOf('*') >= 0) {
                         comparison = " LIKE '" + event.replace(/\*/g, '%') + "'";
                     }
@@ -182,27 +181,25 @@ class DistributedEventEmitter extends EventEmitter {
     }
 
     callOneListener(event, data, raw, resolve, reject) {
-        var self = this;
-        var resolveproxy = (response) => {
+        let self = this;
+        let resolveproxy = (response) => {
             let obj = {
                 data: response,
                 ok: true
             };
             self.emit("response", event, obj, raw);
-
             resolve(obj.data);
         };
-        var rejectproxy = (reason) => {
+        let rejectproxy = (reason) => {
             let obj = {
                 data: reason,
                 ok: false
             };
             self.emit("response", event, obj, raw);
-
             reject(obj.data);
         };
 
-        var listeners = this.listeners(event);
+        let listeners = this.listeners(event);
         if (listeners.length > 0) {
             setImmediate(() => {
                 try {
@@ -224,7 +221,7 @@ class DistributedEventEmitter extends EventEmitter {
     }
 
     connect() {
-        var self = this;
+        let self = this;
         self.promises = {};
 
         return new Promise((resolve, reject) => {
@@ -253,12 +250,12 @@ class DistributedEventEmitter extends EventEmitter {
                         }
 
                         raw.readString('utf8', (error, jsonstr) => {
-                            var msgId = raw.headers['correlation-id'];
-                            var p = self.promises[msgId];
+                            let msgId = raw.headers['correlation-id'];
+                            let p = self.promises[msgId];
                             delete self.promises[msgId];
 
                             if (undefined !== p) {
-                                var data = parseDataIn(jsonstr)
+                                let data = parseDataIn(jsonstr)
 
                                 if ('true' === raw.headers.ok) {
                                     p.resolve(data);
@@ -277,7 +274,7 @@ class DistributedEventEmitter extends EventEmitter {
     }
 
     disconnect() {
-        var self = this;
+        let self = this;
         return new Promise((resolve, reject) => {
             self.channels.close();
             self.emit('disconnected', self.getId());
@@ -287,11 +284,11 @@ class DistributedEventEmitter extends EventEmitter {
 
     emitToOne(event, message, timeout) {
         timeout = timeout || 0;
-        var self = this;
+        let self = this;
         return new Promise((resolve, reject) => {
-            var msgId = UUID.v4();
+            let msgId = UUID.v4();
 
-            var tid;
+            let tid;
             if (timeout > 0) {
                 tid = setTimeout(() => {
                     self.promises[msgId].reject('timeout');
@@ -314,10 +311,10 @@ class DistributedEventEmitter extends EventEmitter {
                 self.channels.channel((error, channel) => {
                     if (error) return;
 
-                    var data = JSON.stringify({
+                    let data = JSON.stringify({
                         d: (undefined === message ? null : message)
                     });
-                    var headers = {
+                    let headers = {
                         'destination': '/queue/' + self.config.destination,
                         'event': event,
                         'sender': self.getId(),
@@ -338,16 +335,16 @@ class DistributedEventEmitter extends EventEmitter {
     }
 
     emit(event, ...args) {
-        var self = this;
+        let self = this;
         return new Promise((resolve, reject) => {
             if (self.config.excludedEvents.indexOf(event) < 0)
                 self.channels.channel((error, channel) => {
                     if (error) return;
 
-                    var data = JSON.stringify({
+                    let data = JSON.stringify({
                         d: (undefined === args ? [] : args)
                     });
-                    var headers = {
+                    let headers = {
                         'destination': '/topic/' + self.config.destination,
                         'event': event,
                         'sender': self.getId(),
@@ -361,7 +358,6 @@ class DistributedEventEmitter extends EventEmitter {
                 });
 
             super.emit.apply(this, arguments);
-
             resolve();
         });
     }
