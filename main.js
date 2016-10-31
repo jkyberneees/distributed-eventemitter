@@ -49,7 +49,7 @@ class DistributedEventEmitter extends EventEmitter {
         };
 
         config = config || {};
-        this.config = config;
+        self.config = config;
         config.servers = config.servers || [{
             'host': 'localhost',
             'port': 61613,
