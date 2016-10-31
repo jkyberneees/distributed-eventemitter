@@ -42,7 +42,7 @@ class DistributedEventEmitter extends EventEmitter {
 
         let self = this;
         self.id = UUID.v4();
-        this.subscriptions = {};
+        self.subscriptions = {};
 
         const emit = (args) => {
             super.emit.apply(self, args);
@@ -67,7 +67,7 @@ class DistributedEventEmitter extends EventEmitter {
         config.excludedEvents = config.excludedEvents || [];
         config.excludedEvents.push(...['newListener', 'removeListener', 'connected', 'error', 'connecting', 'disconnected', 'request', 'response']);
 
-        const callback1 = (event, isQueue, raw) => {
+        const processMessage = (event, isQueue, raw) => {
             raw.readString('utf8', (error, jsonstr) => {
                 let data = parseDataIn(jsonstr);
                 if (!isQueue) {
@@ -141,7 +141,7 @@ class DistributedEventEmitter extends EventEmitter {
                                 self.emit('error', error);
                             } else {
                                 self.subscriptions[event].topic = subscription;
-                                callback1(event, false, message);
+                                processMessage(event, false, message);
                             }
                         });
 
@@ -154,7 +154,7 @@ class DistributedEventEmitter extends EventEmitter {
                                 self.emit('error', error);
                             } else {
                                 self.subscriptions[event].queue = subscription;
-                                callback1(event, true, message);
+                                processMessage(event, true, message);
                             }
                         });
                     });
